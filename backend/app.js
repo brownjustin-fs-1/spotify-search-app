@@ -5,6 +5,7 @@ const cors = require("cors");
 const passport = require("./config/passport");
 const database = require("./config/database");
 const authRoutes = require("./routes/auth");
+const apiRoutes = require("./routes/api");
 
 require("./models/AuthSession");
 
@@ -19,6 +20,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/auth", authRoutes);
+app.use("/api", apiRoutes);
 
 const PORT = process.env.PORT || 3000;
 
@@ -28,7 +30,7 @@ async function startServer() {
     await database.sync();
 
     app.listen(PORT, () => {
-      console.log(`Database connected`);
+      console.log("Database connected");
       console.log(`Server running on port ${PORT}`);
     });
   } catch (error) {
