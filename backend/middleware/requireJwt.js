@@ -13,6 +13,7 @@ function requireJwt(req, res, next) {
 
   try {
     req.user = jwt.verify(token, process.env.JWT_SECRET);
+    req.token = token;
     next();
   } catch (error) {
     return res.status(401).json({
