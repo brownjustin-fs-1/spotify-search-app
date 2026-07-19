@@ -5,6 +5,8 @@ function requireJwt(req, res, next) {
 
   if (!authorizationHeader?.startsWith("Bearer ")) {
     return res.status(401).json({
+      authenticated: false,
+      loginAgain: true,
       error: "A Bearer token is required",
     });
   }
@@ -17,6 +19,8 @@ function requireJwt(req, res, next) {
     next();
   } catch (error) {
     return res.status(401).json({
+      authenticated: false,
+      loginAgain: true,
       error: "The token is invalid or expired",
     });
   }

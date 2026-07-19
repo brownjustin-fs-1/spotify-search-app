@@ -3,6 +3,7 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const passport = require("../config/passport");
 const requireJwt = require("../middleware/requireJwt");
+const validateSession = require("../middleware/validateSession");
 const AuthSession = require("../models/AuthSession");
 
 const router = express.Router();
@@ -61,26 +62,8 @@ router.get(
   },
 );
 
-router.post("/refresh", requireJwt, async (req, res) => {
+router.post("/refresh", requireJwt, validateSession, async (req, res) => {
   try {
-    const currentTokenHash = crypto
-      .createHash("sha256")
-      .update(req.token)
-      .digest("hex");
-
-    const session = await AuthSession.findOne({
-      where: {
-        tokenHash: currentTokenHash,
-      },
-    });
-
-    if (!session || session.expiresAt <= new Date()) {
-      return res.status(401).json({
-        error: "The authentication session is no longer valid",
-        loginAgain: true,
-      });
-    }
-
     const newToken = jwt.sign(
       {
         googleId: req.user.googleId,
@@ -99,7 +82,7 @@ router.post("/refresh", requireJwt, async (req, res) => {
       .update(newToken)
       .digest("hex");
 
-    await session.update({
+    await req.authSession.update({
       tokenHash: newTokenHash,
       expiresAt: new Date(Date.now() + 60 * 60 * 1000),
     });
