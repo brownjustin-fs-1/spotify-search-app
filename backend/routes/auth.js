@@ -8,6 +8,10 @@ const AuthSession = require("../models/AuthSession");
 
 const router = express.Router();
 
+function getFrontendUrl() {
+  return process.env.FRONTEND_URL || "http://localhost:5173";
+}
+
 router.get(
   "/google",
   passport.authenticate("google", {
@@ -47,17 +51,15 @@ router.get(
         expiresAt: new Date(Date.now() + 60 * 60 * 1000),
       });
 
-      res.json({
-        message: "Google authentication successful",
-        token,
-        user: req.user,
-      });
+      const frontendCallbackUrl =
+        `${getFrontendUrl()}/auth/callback` +
+        `#token=${encodeURIComponent(token)}`;
+
+      return res.redirect(frontendCallbackUrl);
     } catch (error) {
       console.error("Could not save authentication session:", error.message);
 
-      res.status(500).json({
-        error: "Authentication succeeded, but the session could not be saved",
-      });
+      return res.redirect(`${getFrontendUrl()}/?authError=session`);
     }
   },
 );
@@ -102,9 +104,7 @@ router.post("/refresh", requireJwt, validateSession, async (req, res) => {
 });
 
 router.get("/failure", (req, res) => {
-  res.status(401).json({
-    error: "Google authentication failed",
-  });
+  return res.redirect(`${getFrontendUrl()}/?authError=google`);
 });
 
 module.exports = router;
